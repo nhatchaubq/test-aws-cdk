@@ -13,9 +13,20 @@ export class HardwareStorageManagementStack extends Stack {
     const welcomeFunction = new NodejsFunction(this, 'WelcomeFunction', {
       entry: 'lambdas/welcome.ts',
     });
-    const getAllTodosFunction = new NodejsFunction(this, 'GetAllTodosFunction', {
-      runtime: Runtime.NODEJS_20_X,
-      entry: 'lambdas/todos.get.ts'
+    const getAllTodosFunction = this.createNodeJsFunction(
+      'GetAllTodosFunction',
+      'lambdas/todos.get.ts'
+    );
+  }
+
+  createNodeJsFunction(
+    functionName: string,
+    entry: string,
+    runtime: Runtime = Runtime.NODEJS_20_X
+  ): NodejsFunction {
+    return new NodejsFunction(this, functionName, {
+      runtime: runtime,
+      entry,
     });
   }
 }
