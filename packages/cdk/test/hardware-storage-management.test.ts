@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import * as HardwareStorageManagement from '../lib/hardware-storage-management-stack';
+import * as HardwareStorageManagement from '../resources/hardware-storage-management-stack';
 
 test('SQS Queue and SNS Topic Created', () => {
   const app = new cdk.App();

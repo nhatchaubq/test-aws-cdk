@@ -1,7 +1,7 @@
 import { App, CfnParameter, Stack, StackProps } from 'aws-cdk-lib';
 import { Alias, Function, Runtime, Version } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { NodejsFunction } from './lambda';
+import { Lambda, NodejsFunction } from '../lib/lambda';
 import {
   CfnStage,
   HttpApi,
@@ -54,7 +54,7 @@ export class HardwareStorageManagementStack extends Stack {
     //   })
     // );
 
-    const helloFunction = NodejsFunction(this, 'HelloFunction', {
+    const [helloFunction] = NodejsFunction(this, 'HelloFunction', {
       entry: 'lambdas/hello.ts',
       // role: lambdaExecutionRole,
     });
@@ -63,7 +63,7 @@ export class HardwareStorageManagementStack extends Stack {
       version: helloFunction.currentVersion,
     });
 
-    const welcomeFunction = NodejsFunction(this, 'WelcomeFunction', {
+    const [welcomeFunction] = NodejsFunction(this, 'WelcomeFunction', {
       entry: 'lambdas/welcome.ts',
       // role: lambdaExecutionRole,
     });
@@ -76,7 +76,7 @@ export class HardwareStorageManagementStack extends Stack {
       }
     );
 
-    const getAllTodosFunction = NodejsFunction(this, 'GetAllTodosFunction', {
+    const [getAllTodosFunction] = NodejsFunction(this, 'GetAllTodosFunction', {
       entry: 'lambdas/todos.get.ts',
       // role: lambdaExecutionRole,
     });
@@ -88,6 +88,8 @@ export class HardwareStorageManagementStack extends Stack {
         version: getAllTodosFunction.currentVersion,
       }
     );
+
+    Lambda.create().with
 
     const httpApi = new HttpApi(this, 'api-gateway', {
       apiName: 'ApiGateway',
