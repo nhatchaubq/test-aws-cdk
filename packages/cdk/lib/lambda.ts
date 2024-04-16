@@ -1,73 +1,65 @@
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import type { HttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
-import { Source } from 'aws-cdk-lib/aws-codebuild';
+import { Architecture, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import {
-  Alias,
-  Architecture,
-  Runtime,
-  Tracing,
-  Version,
-} from 'aws-cdk-lib/aws-lambda';
-import {
-  type NodejsFunctionProps,
   NodejsFunction,
   SourceMapMode,
+  type NodejsFunctionProps,
 } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
-type NodejsFunctionDefaultProps = Omit<
-  NodejsFunctionProps,
-  'architecture' | 'functionName' | 'runtime'
-> & {
-  stage?: string;
-  deploymentVersion?: string;
-};
+// type NodejsFunctionDefaultProps = Omit<
+//   NodejsFunctionProps,
+//   'architecture' | 'functionName' | 'runtime'
+// > & {
+//   stage?: string;
+//   deploymentVersion?: string;
+// };
 
-const defaultNodeJsFunctionProps = (functionName: string) => {
-  return {
-    architecture: Architecture.ARM_64,
-    functionName,
-    runtime: Runtime.NODEJS_LATEST,
-    memorySize: 512,
-    timeout: Duration.seconds(10),
-    logRetention: RetentionDays.ONE_WEEK,
-  } as const;
-};
+// const defaultNodeJsFunctionProps = (functionName: string) => {
+//   return {
+//     architecture: Architecture.ARM_64,
+//     functionName,
+//     runtime: Runtime.NODEJS_LATEST,
+//     memorySize: 512,
+//     timeout: Duration.seconds(10),
+//     logRetention: RetentionDays.ONE_WEEK,
+//   } as const;
+// };
 
-export function NodejsFunctionA(
-  scope: Construct,
-  functionName: string,
-  options: NodejsFunctionDefaultProps
-): [NodejsFunction, Alias, Alias, Alias?] {
-  const { stage, deploymentVersion } = options;
-  const lambdaFunction = new NodejsFunction(scope, functionName, {
-    ...defaultNodeJsFunctionProps(functionName),
-    ...options,
-  });
-  const stgVersion = new Version(scope, `${name}Version_stg`, {
-    lambda: lambdaFunction,
-  });
-  const stgAlias = new Alias(scope, `${name}Alias_stg`, {
-    aliasName: 'stg',
-    version: stgVersion,
-  });
-  const prodAlias = new Alias(scope, `${name}Alias_prod`, {
-    aliasName: 'prod',
-    version: stgVersion,
-  });
-  // if (stage === 'stg') {
-  // }
-  // if (stage === 'prod') {
-  //   let version;
-  //   const stgAlias = new Alias(scope, `${name}Alias_prod`, {
-  //     aliasName: 'prod',
-  //     version: devAlias.ve,
-  //   });
-  // }
+// export function NodejsFunctionA(
+//   scope: Construct,
+//   functionName: string,
+//   options: NodejsFunctionDefaultProps
+// ): NodejsFunction {
+//   const { stage, deploymentVersion } = options;
+//   const lambdaFunction = new NodejsFunction(scope, functionName, {
+//     ...defaultNodeJsFunctionProps(functionName),
+//     ...options,
+//   });
+//   // const stgVersion = new Version(scope, `${name}Version_stg`, {
+//   //   lambda: lambdaFunction,
+//   // });
+//   // const stgAlias = new Alias(scope, `${name}Alias_stg`, {
+//   //   aliasName: 'stg',
+//   //   version: stgVersion,
+//   // });
+//   // const prodAlias = new Alias(scope, `${name}Alias_prod`, {
+//   //   aliasName: 'prod',
+//   //   version: stgVersion,
+//   // });
+//   // if (stage === 'stg') {
+//   // }
+//   // if (stage === 'prod') {
+//   //   let version;
+//   //   const stgAlias = new Alias(scope, `${name}Alias_prod`, {
+//   //     aliasName: 'prod',
+//   //     version: devAlias.ve,
+//   //   });
+//   // }
 
-  return [lambdaFunction, stgAlias, prodAlias];
-}
+//   return lambdaFunction;
+// }
 
 /**
  * ILambdaProps provices all properties required to create a lambda.
@@ -118,7 +110,6 @@ export const defaultProps: NodejsFunctionProps = {
  */
 export class Lambda extends NodejsFunction {
   private static resourceType = 'lambda';
-  private api: HttpApi;
 
   /**
    * A private constructor allowing only the static create function to create an instance of Lambda.
@@ -135,10 +126,6 @@ export class Lambda extends NodejsFunction {
     super(scope, id, props);
   }
 
-  static with(api: HttpApi): Lambda {
-    this.api = api;
-  }
-
   /**
    * Create an instance of Lambda setting fixed and default configuration.
    * @param {Construct} scope - CDK construct
@@ -146,16 +133,15 @@ export class Lambda extends NodejsFunction {
    * @param {ILambdaProps} props - Properties to be applied when creating the Lambda
    * @returns {Lambda} A new instance of Lambda
    */
-  create(scope: Construct, id: string, props: ILambdaProps): Lambda {
+  static create(scope: Construct, id: string, props: ILambdaProps): Lambda {
     const lambda = new Lambda(scope, id, {
       ...defaultProps,
       ...props,
       ...fixedProps,
       environment: {
         ...(props.environment ?? {}),
-        POWERTOOLS_METRICS_NAMESPACE: props.serviceName,
       },
     });
-    return new WithApi(lambda);
+    return lambda;
   }
 }
